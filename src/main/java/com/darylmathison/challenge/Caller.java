@@ -21,10 +21,17 @@ public class Caller {
     }
 
     public void call() {
-        marker.alter(new CallFunction());
+        marker.alter(new CallFunction(message));
     }
 
-    private class CallFunction implements IFunction<Long, Long>, Serializable {
+    private static class CallFunction implements IFunction<Long, Long>, Serializable {
+
+        private String message;
+
+        public CallFunction(String message) {
+            this.message = message;
+        }
+
         @Override
         public Long apply(Long input) {
             if(input != FLAG) {

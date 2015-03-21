@@ -1,10 +1,11 @@
 package com.darylmathison.challenge;
 
-import com.hazelcast.core.*;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.MembershipAdapter;
+import com.hazelcast.core.MembershipEvent;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * Created by Daryl on 3/21/2015.
@@ -13,23 +14,18 @@ public class Main {
 
 
     public static void main(String args[]) {
-        final Properties props = new Properties();
-        final HazelcastInstance instance = Hazelcast.newHazelcastInstance();
-        try(FileReader properties = new FileReader("target/classes/settings.properties")) {
-            props.load(properties);
-            final Caller caller = new Caller(props.getProperty("message"), props.getProperty("marker.name"), instance);
-            instance.getCluster().addMembershipListener(new MembershipAdapter(){
-                @Override
-                public void memberAdded(MembershipEvent membershipEvent) {
-                    int size = membershipEvent.getCluster().getMembers().size();
-                    if(size >= Integer.parseInt(props.getProperty("min.nodes"))) {
-                        caller.call();
-                    }
+        HazelcastInstance instance = Hazelcast.newHazelcastInstance();
+        final ResourceBundle props = ResourceBundle.getBundle("settings");
+        final Caller caller = new Caller(props.getString("message"), props.getString("marker.name"), instance);
+        instance.getCluster().addMembershipListener(new MembershipAdapter(){
+            @Override
+            public void memberAdded(MembershipEvent membershipEvent) {
+                int size = membershipEvent.getCluster().getMembers().size();
+                if(size >= Integer.parseInt(props.getString("min.nodes"))) {
+                    caller.call();
                 }
-            });
+            }
+        });
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
